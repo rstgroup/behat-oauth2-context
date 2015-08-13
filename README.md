@@ -12,17 +12,17 @@ For others requirements please see the [composer.json](composer.json) file.
 
 1. Add the following to your `composer.json`,
  
-```json
-"require": {
-    "rstgroup/behat-oauth2-context": "^1.0"
-},
-"repositories": [
-    {
-        "type": "vcs",
-        "url": "git@github.com:rstgroup/behat-oauth2-context.git"
+    ```json
+    "require": {
+        "rstgroup/behat-oauth2-context": "^1.0"
+    },
+    "repositories": [
+        {
+            "type": "vcs",
+            "url": "git@github.com:rstgroup/behat-oauth2-context.git"
+        }
     }
-}
-```
+    ```
 
 2. Run `composer update rstgroup/behat-oauth2-context` to ensure the library is installed.
 
