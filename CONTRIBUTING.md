@@ -2,19 +2,19 @@
 
 ## Setup repository
 
-1. Fork the [rstgroup/oauth2-behat-tests] repository on github.
+1. Fork the [rstgroup/behat-oauth2-context] repository on github.
 2. Clone your fork locally and enter it (use your own github username in the statement below)
 
     ```
-    $ git clone git@github.com:rstgroup/oauth2-behat-tests.git
-    $ cd oauth2-behat-tests
+    $ git clone git@github.com:rstgroup/behat-oauth2-context.git
+    $ cd behat-oauth2-context
     ```
    
-3. Add a remote to the canonical OAuth2 Behat Tests Libary repository, so you can keep your fork up-to-date:
+3. Add a remote to the canonical Behat OAuth2 context repository, so you can keep your fork up-to-date:
 
     ```
-    $ git remote add api-rest ssh://git@github.com:rstgroup/oauth2-behat-tests.git
-    $ git fetch oauth2-behat-tests
+    $ git remote add api-rest ssh://git@github.com:rstgroup/behat-oauth2-context.git
+    $ git fetch behat-oauth2-context
     ```
    
 ## Working on Api REST Library

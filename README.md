@@ -10,15 +10,21 @@ For others requirements please see the [composer.json](composer.json) file.
 
 ## Installation
 
-1. Add the following to your `composer.json`, in the `require` section:
-
+1. Add the following to your `composer.json`,
+ 
 ```json
 "require": {
-    "rstgroup/behat-oauth2": "^1.0"
+    "rstgroup/behat-oauth2-context": "^1.0"
+},
+"repositories": [
+    {
+        "type": "vcs",
+        "url": "git@github.com:rstgroup/behat-oauth2-context.git"
+    }
 }
 ```
 
-2. Run `composer update rstgroup/behat-oauth2` to ensure the library is installed.
+2. Run `composer update rstgroup/behat-oauth2-context` to ensure the library is installed.
 
 ## Configuration
 
@@ -32,7 +38,7 @@ to right current path
 for example:
 ```php
     paths:
-        - %paths.base%/vendor/rstgroup/behat-oauth2/features/
+        - %paths.base%/vendor/rstgroup/behat-oauth2-context/features/
 ```
 And next you must replace parameters option:
 - token_url - your url to token

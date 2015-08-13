@@ -4,7 +4,7 @@ default:
             paths:
                 - %paths.base%/features
             contexts:
-                - RstGroup\OAuth2BehatTests\OAuth2Context:
+                - RstGroup\Behat\OAuth2\Context:
                     parameters:
                         token_url: some_url
                         oauth2:
