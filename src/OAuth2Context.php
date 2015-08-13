@@ -16,7 +16,7 @@ use GuzzleHttp\Message\ResponseInterface;
  */
 class OAuth2Context implements SnippetAcceptingContext
 {
-    protected $headers = array();
+    protected $headers = [];
 
     /**
      * @var GuzzleHttpClient
@@ -33,11 +33,11 @@ class OAuth2Context implements SnippetAcceptingContext
      */
     protected $request = null;
 
-    protected $requestBody = array();
+    protected $requestBody = [];
 
     protected $data = null;
 
-    protected $parameters = array();
+    protected $parameters = [];
 
     /**
      * @var string
@@ -70,11 +70,11 @@ class OAuth2Context implements SnippetAcceptingContext
      */
     public function iCreateOAuth2Request()
     {
-        $this->requestBody = array();
-        $this->setHeaders(array(
+        $this->requestBody = [];
+        $this->setHeaders([
             'Content-Type' => 'application/x-www-form-urlencoded',
             'Accept' => 'application/json',
-        ));
+        ]);
 
         $this->requestBody['client_id'] = $this->parameters['oauth2']['client_id'];
         $this->requestBody['client_secret'] = $this->parameters['oauth2']['client_secret'];
@@ -230,10 +230,10 @@ class OAuth2Context implements SnippetAcceptingContext
      */
     public function theResponseHasTheOAuth2Format()
     {
-        $expectedHeaders = array(
+        $expectedHeaders = [
             'cache-control' => 'no-store',
             'pragma' => 'no-cache'
-        );
+        ];
 
         foreach ($expectedHeaders as $name => $value) {
             if ($this->response->getHeader($name) != $value) {
@@ -250,7 +250,7 @@ class OAuth2Context implements SnippetAcceptingContext
      */
     protected function getPostResponseFromUrl($url, $body)
     {
-        return $this->client->post($url, array('body' => $body, 'verify' => false, 'exceptions' => false));
+        return $this->client->post($url, ['body' => $body, 'verify' => false, 'exceptions' => false]);
     }
 
     /**
@@ -315,6 +315,6 @@ class OAuth2Context implements SnippetAcceptingContext
      */
     public function printDebug($string)
     {
-        echo sprintf("\n\033[36m| %s\033[0m\n\n", strtr($string, array("\n" => "\n|  ")));
+        echo sprintf("\n\033[36m| %s\033[0m\n\n", strtr($string, ["\n" => "\n|  "]));
     }
 }
