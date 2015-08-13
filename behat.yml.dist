@@ -1,0 +1,20 @@
+default:
+    suites:
+        default:
+            paths:
+                - %paths.base%/features
+            contexts:
+                - RstGroup\Behat\OAuth2\Context:
+                    parameters:
+                        token_url: some_url
+                        oauth2:
+                            client_id: 1
+                            client_secret: foo
+                            username: foo
+                            password: bar
+                        recommended:  #Are RECOMMENDED in OAuth2 documentation. If you know that your server doesn't send someone, you can change it on false.
+                            expires_in: true
+                        optional: #Are OPTIONAL in OAuth2 documentation. If you know that your server doesn't send someone, you can change it on false.
+                            refresh_token : true
+                            error_description : true
+                            scope : true
