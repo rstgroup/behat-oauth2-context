@@ -1,0 +1,29 @@
+{
+    "name": "rstgroup/behat-oauth2-context",
+    "description": "Behat Context for OAuth2",
+    "type": "library",
+    "license": "MIT",
+    "authors": [
+        {
+            "name": "Bartłomiej Piskorz"
+        },
+        {
+            "name": "Michał Kopacz"
+        },
+        {
+            "name": "Jakub Niec"
+        },
+        {
+            "name": "Witold Wasiczko"
+        }
+    ],
+    "require": {
+        "php": ">=5.4.0",
+        "behat/behat": "^3.0",
+        "guzzlehttp/guzzle": "^5.1"
+    },
+    "autoload":{
+        "psr-4" : {"RstGroup\\Behat\\OAuth2\\Context": "src/"}
+    }
+
+}
