@@ -16,6 +16,8 @@ use GuzzleHttp\Message\ResponseInterface;
  */
 class OAuth2Context implements SnippetAcceptingContext
 {
+    const GUZZLE_PARAMETERS = 'guzzle_parameters';
+
     protected $headers = [];
 
     /**
@@ -56,7 +58,9 @@ class OAuth2Context implements SnippetAcceptingContext
     {
         // Initialize your context here
         $this->parameters = $parameters;
-        $this->client = new GuzzleHttpClient();
+
+        $guzzleParameters = $this->getGuzzleParameters();
+        $this->client = new GuzzleHttpClient($guzzleParameters);
 
         $timezone = ini_get('date.timezone');
 
@@ -222,7 +226,7 @@ class OAuth2Context implements SnippetAcceptingContext
      */
     public function echoLastResponse()
     {
-        $this->printDebug(sprintf("Request:\n %s Response:\n %s", $this->request, $this->response));
+        $this->printDebug(sprintf("Request:\n %s \n\n Response:\n %s", $this->request, $this->response));
     }
 
     /**
@@ -250,7 +254,8 @@ class OAuth2Context implements SnippetAcceptingContext
      */
     protected function getPostResponseFromUrl($url, $body)
     {
-        return $this->client->post($url, ['body' => $body, 'verify' => false, 'exceptions' => false]);
+        $this->request = $this->client->createRequest('POST', $url, ['body' => $body, 'verify' => false, 'exceptions' => false]);
+        return $this->client->send($this->request);
     }
 
     /**
@@ -306,6 +311,11 @@ class OAuth2Context implements SnippetAcceptingContext
         foreach ($headers as $name => $value) {
             $this->setHeader($name, $value);
         }
+    }
+
+    protected function getGuzzleParameters()
+    {
+        return isset($this->parameters[self::GUZZLE_PARAMETERS]) && is_array($this->parameters[self::GUZZLE_PARAMETERS]) ? $this->parameters[self::GUZZLE_PARAMETERS] : [];
     }
 
     /**

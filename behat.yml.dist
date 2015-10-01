@@ -4,7 +4,7 @@ default:
             paths:
                 - %paths.base%/features
             contexts:
-                - RstGroup\Behat\OAuth2\Context:
+                - RstGroup\Behat\OAuth2\Context\OAuth2Context:
                     parameters:
                         token_url: some_url
                         oauth2:
@@ -18,3 +18,4 @@ default:
                             refresh_token : true
                             error_description : true
                             scope : true
+                        guzzle_parameters: #configuration for guzzle http client
