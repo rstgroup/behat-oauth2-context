@@ -21,14 +21,14 @@ For others requirements please see the [composer.json](composer.json) file.
             "type": "vcs",
             "url": "git@github.com:rstgroup/behat-oauth2-context.git"
         }
-    }
+    ]
     ```
 
 2. Run `composer update rstgroup/behat-oauth2-context` to ensure the library is installed.
 
 ## Configuration
 
-Copy behat.yml.dist file as behat.yml to your home project directory or copy contents from this file to your yml file with Behat tests.
+Copy `behat.yml.dist` file as `behat.yml` to your home project directory or copy contents from this file to your yml file with Behat tests.
 You must replace sample content to right option:
 ```php
     paths:
@@ -41,8 +41,8 @@ for example:
         - %paths.base%/vendor/rstgroup/behat-oauth2-context/features/
 ```
 And next you must replace parameters option:
-- token_url - your url to token
-- oauth2 - your data for OAuth2 authorization
+- `token_url` - your url to token
+- `oauth2` - your data for OAuth2 authorization
 
 ### Recommended and optional parameters
 
