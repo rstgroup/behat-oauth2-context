@@ -226,7 +226,7 @@ class OAuth2Context implements SnippetAcceptingContext
      */
     public function echoLastResponse()
     {
-        $this->printDebug(sprintf("Request:\n %s Response:\n %s", $this->request, $this->response));
+        $this->printDebug(sprintf("Request:\n %s \n\n Response:\n %s", $this->request, $this->response));
     }
 
     /**
@@ -254,7 +254,8 @@ class OAuth2Context implements SnippetAcceptingContext
      */
     protected function getPostResponseFromUrl($url, $body)
     {
-        return $this->client->post($url, ['body' => $body, 'verify' => false, 'exceptions' => false]);
+        $this->request = $this->client->createRequest('POST', $url, ['body' => $body, 'verify' => false, 'exceptions' => false]);
+        return $this->client->send($this->request);
     }
 
     /**
