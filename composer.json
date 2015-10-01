@@ -23,7 +23,7 @@
         "guzzlehttp/guzzle": "^5.1"
     },
     "autoload":{
-        "psr-4" : {"RstGroup\\Behat\\OAuth2\\Context": "src/"}
+        "psr-4" : {"RstGroup\\Behat\\OAuth2\\Context\\": "src/"}
     }
 
 }
