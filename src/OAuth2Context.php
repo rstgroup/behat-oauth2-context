@@ -16,6 +16,8 @@ use GuzzleHttp\Message\ResponseInterface;
  */
 class OAuth2Context implements SnippetAcceptingContext
 {
+    const GUZZLE_PARAMETERS = 'guzzle_parameters';
+
     protected $headers = [];
 
     /**
@@ -56,7 +58,9 @@ class OAuth2Context implements SnippetAcceptingContext
     {
         // Initialize your context here
         $this->parameters = $parameters;
-        $this->client = new GuzzleHttpClient();
+
+        $guzzleParameters = $this->getGuzzleParameters();
+        $this->client = new GuzzleHttpClient($guzzleParameters);
 
         $timezone = ini_get('date.timezone');
 
@@ -306,6 +310,11 @@ class OAuth2Context implements SnippetAcceptingContext
         foreach ($headers as $name => $value) {
             $this->setHeader($name, $value);
         }
+    }
+
+    protected function getGuzzleParameters()
+    {
+        return isset($this->parameters[self::GUZZLE_PARAMETERS]) && is_array($this->parameters[self::GUZZLE_PARAMETERS]) ? $this->parameters[self::GUZZLE_PARAMETERS] : [];
     }
 
     /**
