@@ -1,18 +1,24 @@
 <?php
-/**
- * @licence http://opensource.org/licenses/MIT MIT
- */
+
+declare(strict_types=1);
 
 namespace RstGroup\Behat\OAuth2\Context;
 
-use Behat\Gherkin\Node\TableNode;
 use Behat\Behat\Context\SnippetAcceptingContext;
+use Behat\Gherkin\Node\TableNode;
+use Exception;
 use GuzzleHttp\Client as GuzzleHttpClient;
-use GuzzleHttp\Message\RequestInterface;
-use GuzzleHttp\Message\ResponseInterface;
+use GuzzleHttp\Psr7\Request;
+use LogicException;
+use Psr\Http\Message\RequestInterface;
+use Psr\Http\Message\ResponseInterface;
+use function GuzzleHttp\json_decode;
+use function GuzzleHttp\json_encode;
 
 /**
  * OAuth2 context for Behat BDD tool.
+ *
+ * @licence http://opensource.org/licenses/MIT MIT
  */
 class OAuth2Context implements SnippetAcceptingContext
 {
@@ -94,10 +100,10 @@ class OAuth2Context implements SnippetAcceptingContext
 
         $url = $this->parameters['token_url'];
         $response = $this->getPostResponseFromUrl($url, $parameters);
-        $data = json_decode($response->getBody(true), true);
+        $data = json_decode((string) $response->getBody(), true);
 
         if (!isset($data['refresh_token'])) {
-            throw new \Exception(sprintf("Error refresh token. Response: %s", $response->getBody(true)));
+            throw new Exception(sprintf("Error refresh token. Response: %s", (string) $response->getBody()));
         }
         $this->refreshToken = $data['refresh_token'];
     }
@@ -131,16 +137,16 @@ class OAuth2Context implements SnippetAcceptingContext
         $url = $this->parameters['token_url'];
         $this->response = $this->getPostResponseFromUrl($url, $this->requestBody);
 
-        $contentType = (string) $this->response->getHeader('Content-type');
+        $contentType = $this->response->getHeaderLine('Content-type');
 
         if ($contentType !== 'application/json') {
-            throw new \Exception(sprintf("Content-type must be application/json %s", $this->echoLastResponse()));
+            throw new Exception(sprintf("Content-type must be application/json %s", $this->echoLastResponse()));
         }
-        $this->data = json_decode($this->response->getBody(true));
+        $this->data = json_decode((string) $this->response->getBody());
         $this->lastErrorJson = json_last_error();
 
         if ($this->lastErrorJson != JSON_ERROR_NONE) {
-            throw new \Exception(sprintf("Error parsing response JSON " . "\n\n %s", $this->echoLastResponse()));
+            throw new Exception(sprintf("Error parsing response JSON " . "\n\n %s", $this->echoLastResponse()));
         }
     }
 
@@ -159,7 +165,7 @@ class OAuth2Context implements SnippetAcceptingContext
     public function theResponseStatusCodeIs($httpStatus)
     {
         if ((string) $this->response->getStatusCode() !== $httpStatus) {
-            throw new \Exception(sprintf("HTTP code does not match %s (actual: %s)\n\n %s", $httpStatus, $this->response->getStatusCode(), $this->echoLastResponse()));
+            throw new Exception(sprintf("HTTP code does not match %s (actual: %s)\n\n %s", $httpStatus, $this->response->getStatusCode(), $this->echoLastResponse()));
         }
     }
 
@@ -177,8 +183,8 @@ class OAuth2Context implements SnippetAcceptingContext
 
         try {
             return $this->getPropertyValue($propertyName);
-        } catch (\LogicException $e) {
-            throw new \Exception(sprintf("Property %s is not set!\n\n %s", $propertyName, $this->echoLastResponse()));
+        } catch (LogicException $e) {
+            throw new Exception(sprintf("Property %s is not set!\n\n %s", $propertyName, $this->echoLastResponse()));
         }
     }
 
@@ -204,7 +210,7 @@ class OAuth2Context implements SnippetAcceptingContext
                     break;
                 }
             default:
-                throw new \Exception(sprintf("Property %s is not of the correct type: %s!\n\n %s", $propertyName, $typeString, $this->echoLastResponse()));
+                throw new Exception(sprintf("Property %s is not of the correct type: %s!\n\n %s", $propertyName, $typeString, $this->echoLastResponse()));
         }
     }
 
@@ -218,7 +224,7 @@ class OAuth2Context implements SnippetAcceptingContext
         if ($value == $propertyValue) {
             return;
         }
-        throw new \Exception(sprintf("Given %s value is not %s\n\n %s", $propertyName, $propertyValue, $this->echoLastResponse()));
+        throw new Exception(sprintf("Given %s value is not %s\n\n %s", $propertyName, $propertyValue, $this->echoLastResponse()));
     }
 
     /**
@@ -241,20 +247,16 @@ class OAuth2Context implements SnippetAcceptingContext
 
         foreach ($expectedHeaders as $name => $value) {
             if ($this->response->getHeader($name) != $value) {
-                throw new \Exception(sprintf("Header %s is should be %s, %s given", $name, $value, $this->response->getHeader($name)));
+                throw new Exception(sprintf("Header %s is should be %s, %s given", $name, $value, $this->response->getHeader($name)));
             }
         }
     }
 
-    /**
-     * Get POST response from URL without ssl verify and exception propagation
-     *
-     * @param string $url POST URL
-     * @param array $body body array
-     */
-    protected function getPostResponseFromUrl($url, $body)
+    protected function getPostResponseFromUrl(string $url, array $body): ResponseInterface
     {
-        $this->request = $this->client->createRequest('POST', $url, ['body' => $body, 'verify' => false, 'exceptions' => false]);
+        $bodyAsJson = json_encode($body);
+        $this->request = new Request('POST', $url, [], $bodyAsJson);
+
         return $this->client->send($this->request);
     }
 
@@ -263,7 +265,7 @@ class OAuth2Context implements SnippetAcceptingContext
      *
      * @param string $propertyName property name
      */
-    protected function getPropertyValue($propertyName)
+    protected function getPropertyValue(string $propertyName)
     {
         return $this->getValue($propertyName, $this->data);
     }
@@ -274,10 +276,10 @@ class OAuth2Context implements SnippetAcceptingContext
      * @param string $propertyName property name
      * @param mixed $data data as array or object
      */
-    protected function getValue($propertyName, $data)
+    protected function getValue(string $propertyName, $data)
     {
         if (empty($data)) {
-            throw new \Exception(sprintf("Response was not set %s", var_export($data, true)));
+            throw new Exception(sprintf("Response was not set %s", var_export($data, true)));
         }
         if (is_array($data) && array_key_exists($propertyName, $data)) {
             $data = $data[$propertyName];
@@ -287,7 +289,7 @@ class OAuth2Context implements SnippetAcceptingContext
             $data = $data->$propertyName;
             return $data;
         }
-        throw new \LogicException(sprintf("'%s' is not set", $propertyName));
+        throw new LogicException(sprintf("'%s' is not set", $propertyName));
     }
 
     /**
@@ -296,7 +298,7 @@ class OAuth2Context implements SnippetAcceptingContext
      * @param string $name header name
      * @param string $value value for header name
      */
-    protected function setHeader($name, $value)
+    protected function setHeader(string $name, string $value)
     {
         $this->headers[$name] = $value;
     }
@@ -313,7 +315,7 @@ class OAuth2Context implements SnippetAcceptingContext
         }
     }
 
-    protected function getGuzzleParameters()
+    protected function getGuzzleParameters(): array
     {
         return isset($this->parameters[self::GUZZLE_PARAMETERS]) && is_array($this->parameters[self::GUZZLE_PARAMETERS]) ? $this->parameters[self::GUZZLE_PARAMETERS] : [];
     }
@@ -323,7 +325,7 @@ class OAuth2Context implements SnippetAcceptingContext
      *
      * @param string $string debug string
      */
-    public function printDebug($string)
+    public function printDebug(string $string)
     {
         echo sprintf("\n\033[36m| %s\033[0m\n\n", strtr($string, ["\n" => "\n|  "]));
     }
