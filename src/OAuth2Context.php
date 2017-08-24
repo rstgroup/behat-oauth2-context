@@ -12,6 +12,8 @@ use GuzzleHttp\Psr7\Request;
 use LogicException;
 use Psr\Http\Message\RequestInterface;
 use Psr\Http\Message\ResponseInterface;
+use Zend\Diactoros\Request\Serializer as RequestSerializer;
+use Zend\Diactoros\Response\Serializer as ResponseSerializer;
 use function GuzzleHttp\json_decode;
 use function GuzzleHttp\json_encode;
 
@@ -232,7 +234,10 @@ class OAuth2Context implements SnippetAcceptingContext
      */
     public function echoLastResponse()
     {
-        $this->printDebug(sprintf("Request:\n %s \n\n Response:\n %s", $this->request, $this->response));
+        $request = RequestSerializer::toString($this->request);
+        $response = ResponseSerializer::toString($this->response);
+
+        $this->printDebug(sprintf("Request:\n %s \n\n Response:\n %s", $request, $response));
     }
 
     /**
