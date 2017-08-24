@@ -251,8 +251,9 @@ class OAuth2Context implements SnippetAcceptingContext
         ];
 
         foreach ($expectedHeaders as $name => $value) {
-            if ($this->response->getHeader($name) != $value) {
-                throw new Exception(sprintf("Header %s is should be %s, %s given", $name, $value, $this->response->getHeader($name)));
+            $responseHeaderValue = $this->response->getHeaderLine($name);
+            if ($responseHeaderValue != $value) {
+                throw new Exception(sprintf("Header %s is should be %s, %s given", $name, $value, $responseHeaderValue));
             }
         }
     }
