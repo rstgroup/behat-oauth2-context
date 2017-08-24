@@ -17,7 +17,7 @@ Feature: OAuth2 Token Grant Password
         | username   | no       |
         | password   | bar      |
     And I send a access token request
-    Then the response status code is 400
+    Then the response status code is 401
     And the response has a "error" property and it is equals "invalid_grant"
     And the response has a "error_description" property
 

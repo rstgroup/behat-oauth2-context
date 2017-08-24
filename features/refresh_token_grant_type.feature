@@ -16,7 +16,7 @@ Feature: Refresh Token Grant Type
         | grant_type    | refresh_token |
         | refresh_token | foo           |
     And I send a access token request
-    Then the response status code is 400
+    Then the response status code is 401
     And the response has a "error" property and it is equals "invalid_grant"
     And the response has a "error_description" property
 
