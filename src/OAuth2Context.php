@@ -259,11 +259,11 @@ class OAuth2Context implements SnippetAcceptingContext
 
     protected function getPostResponseFromUrl(string $url, array $body): ResponseInterface
     {
-        $bodyAsJson = json_encode($body);
+        $bodyAsQuery = http_build_query($body);
         $headers = [
-            'Content-Type' => 'application/json',
+            'Content-Type' => 'application/x-www-form-urlencoded',
         ];
-        $this->request = new Request('POST', $url, $headers, $bodyAsJson);
+        $this->request = new Request('POST', $url, $headers, $bodyAsQuery);
 
         return $this->client->send($this->request);
     }
