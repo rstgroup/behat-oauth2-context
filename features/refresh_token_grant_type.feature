@@ -5,7 +5,7 @@ Feature: Refresh Token Grant Type
     When I create oauth2 request
     And I add the request parameters:
         | grant_type | refresh_token   |
-    And I send a access token request
+    And I send a access token request: "POST"
     Then the response status code is 400
     And the response has a "error" property and it is equals "invalid_request"
     And the response has a "error_description" property
@@ -15,7 +15,7 @@ Feature: Refresh Token Grant Type
     And I add the request parameters:
         | grant_type    | refresh_token |
         | refresh_token | foo           |
-    And I send a access token request
+    And I send a access token request: "POST"
     Then the response status code is 400
     And the response has a "error" property and it is equals "invalid_grant"
     And the response has a "error_description" property
@@ -25,7 +25,7 @@ Feature: Refresh Token Grant Type
     When I create oauth2 request
     And I add the request parameters:
         | grant_type    | refresh_token     |
-    And I make a access token request with given refresh token
+    And I make a access token request with given refresh token: "POST"
     Then the response status code is 200
     And the response is oauth2 format
     And the response has a "access_token" property

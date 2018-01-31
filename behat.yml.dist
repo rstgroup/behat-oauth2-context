@@ -18,4 +18,9 @@ default:
                             refresh_token : true
                             error_description : true
                             scope : true
+                            resource_owners:
+                                linkedin:
+                                    access_token: foo
+                                    grant_type: "http://127.0.0.1/grants/linkedin"
+                                    redirect_uri: "http://127.0.0.1"
                         guzzle_parameters: #configuration for guzzle http client

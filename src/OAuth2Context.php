@@ -8,6 +8,7 @@ use Behat\Behat\Context\SnippetAcceptingContext;
 use Behat\Gherkin\Node\TableNode;
 use Exception;
 use GuzzleHttp\Client as GuzzleHttpClient;
+use GuzzleHttp\Exception\ClientException;
 use GuzzleHttp\Psr7\Request;
 use LogicException;
 use Psr\Http\Message\RequestInterface;
@@ -15,7 +16,6 @@ use Psr\Http\Message\ResponseInterface;
 use Zend\Diactoros\Request\Serializer as RequestSerializer;
 use Zend\Diactoros\Response\Serializer as ResponseSerializer;
 use function GuzzleHttp\json_decode;
-use function GuzzleHttp\json_encode;
 
 /**
  * OAuth2 context for Behat BDD tool.
@@ -44,6 +44,8 @@ class OAuth2Context implements SnippetAcceptingContext
     protected $request = null;
 
     protected $requestBody = [];
+
+    protected $queryString;
 
     protected $data = null;
 
@@ -83,13 +85,15 @@ class OAuth2Context implements SnippetAcceptingContext
     public function iCreateOAuth2Request()
     {
         $this->requestBody = [];
+        $this->queryString = [];
         $this->setHeaders([
-            'Content-Type' => 'application/x-www-form-urlencoded',
             'Accept' => 'application/json',
         ]);
 
         $this->requestBody['client_id'] = $this->parameters['oauth2']['client_id'];
         $this->requestBody['client_secret'] = $this->parameters['oauth2']['client_secret'];
+        $this->queryString['client_id'] = $this->parameters['oauth2']['client_id'];
+        $this->queryString['client_secret'] = $this->parameters['oauth2']['client_secret'];
     }
 
     /**
@@ -111,6 +115,21 @@ class OAuth2Context implements SnippetAcceptingContext
     }
 
     /**
+     * @Given that I have an refresh token from GET request
+     */
+    public function thatIHaveAnRefreshTokenFromGetRequest()
+    {
+        $response = $this->getGetResponseFromUrl($this->parameters['token_url']);
+        $data = json_decode((string) $response->getBody(), true);
+
+        if (empty($data['refresh_token'])) {
+            throw new Exception(sprintf("Error refresh token. Response: %s", (string) $response->getBody()));
+        }
+
+        $this->refreshToken = $data['refresh_token'];
+    }
+
+    /**
      * @When I add the request parameters:
      */
     public function iAddTheRequestParameters(TableNode $parameters)
@@ -123,6 +142,18 @@ class OAuth2Context implements SnippetAcceptingContext
     }
 
     /**
+     * @When I add the query parameters:
+     */
+    public function iAddTheQueryParameters(TableNode $parameters)
+    {
+        if (null === $parameters) {
+            return;
+        }
+
+        $this->queryString = array_merge($this->queryString, $parameters->getRowsHash());
+    }
+
+    /**
      * @When I add resource owner credentials
      */
     public function iAddResourceOwnerCredentials()
@@ -132,18 +163,54 @@ class OAuth2Context implements SnippetAcceptingContext
     }
 
     /**
-     * @When I send a access token request
+     * @When I add resource owner parameters :resourceOwner
      */
-    public function iMakeAAccessTokenRequest()
+    public function iAddResourceOwnerParameters(string $resourceOwner)
+    {
+        if (empty($this->parameters['oauth2']['resource_owners'][$resourceOwner])) {
+            throw new \InvalidArgumentException(sprintf("Resource owner not defined: %s", $resourceOwner));
+        }
+
+        $resourceOwnerConfig = $this->parameters['oauth2']['resource_owners'][$resourceOwner];
+        $this->queryString['grant_type'] = $resourceOwnerConfig['grant_type'];
+        $this->queryString['redirect_uri'] = $resourceOwnerConfig['redirect_uri'];
+    }
+
+    /**
+     * @When I add resource owner valid access token :resourceOwner
+     */
+    public function iAddResourceOwnerValidAccessToken(string $resourceOwner)
+    {
+        if (empty($this->parameters['oauth2']['resource_owners'][$resourceOwner]) ||
+            empty($this->parameters['oauth2']['resource_owners'][$resourceOwner]['access_token'])
+        ) {
+            throw new \InvalidArgumentException(sprintf("Resource owner not defined: %s", $resourceOwner));
+        }
+
+        $this->queryString['access_token'] = $this->parameters['oauth2']['resource_owners'][$resourceOwner]['access_token'];
+    }
+
+    /**
+     * @When I send a access token request :method
+     */
+    public function iMakeAAccessTokenRequest(string $method)
     {
         $url = $this->parameters['token_url'];
-        $this->response = $this->getPostResponseFromUrl($url, $this->requestBody);
+
+        try {
+            $this->response = 'GET' === $method
+                ? $this->getGetResponseFromUrl($url)
+                : $this->getPostResponseFromUrl($url, $this->requestBody)
+            ;
+        } catch (ClientException $e) {
+            $this->response = $e->getResponse();
+        }
 
         $contentType = $this->response->getHeaderLine('Content-type');
-
         if ($contentType !== 'application/json') {
             throw new Exception(sprintf("Content-type must be application/json %s", $this->echoLastResponse()));
         }
+
         $this->data = json_decode((string) $this->response->getBody());
         $this->lastErrorJson = json_last_error();
 
@@ -153,12 +220,17 @@ class OAuth2Context implements SnippetAcceptingContext
     }
 
     /**
-     * @When I make a access token request with given refresh token
+     * @When I make a access token request with given refresh token: :method
      */
-    public function iMakeAAccessTokenRequestWithGivenRefreshToken()
+    public function iMakeAAccessTokenRequestWithGivenRefreshToken(string $method)
     {
-        $this->requestBody['refresh_token'] = $this->refreshToken;
-        $this->iMakeAAccessTokenRequest();
+        if ('GET' === $method) {
+            $this->queryString['refresh_token'] = $this->refreshToken;
+        } else {
+            $this->requestBody['refresh_token'] = $this->refreshToken;
+        }
+
+        $this->iMakeAAccessTokenRequest($method);
     }
 
     /**
@@ -166,7 +238,7 @@ class OAuth2Context implements SnippetAcceptingContext
      */
     public function theResponseStatusCodeIs($httpStatus)
     {
-        if ((string) $this->response->getStatusCode() !== $httpStatus) {
+        if ((int) $this->response->getStatusCode() !== $httpStatus) {
             throw new Exception(sprintf("HTTP code does not match %s (actual: %s)\n\n %s", $httpStatus, $this->response->getStatusCode(), $this->echoLastResponse()));
         }
     }
@@ -246,13 +318,13 @@ class OAuth2Context implements SnippetAcceptingContext
     public function theResponseHasTheOAuth2Format()
     {
         $expectedHeaders = [
-            'cache-control' => 'no-store',
-            'pragma' => 'no-cache'
+            'cache-control' => ['no-store', 'no-store, private'],
+            'pragma' => ['no-cache']
         ];
 
-        foreach ($expectedHeaders as $name => $value) {
+        foreach ($expectedHeaders as $name => $values) {
             $responseHeaderValue = $this->response->getHeaderLine($name);
-            if ($responseHeaderValue != $value) {
+            if (!in_array($responseHeaderValue, $values)) {
                 throw new Exception(sprintf("Header %s is should be %s, %s given", $name, $value, $responseHeaderValue));
             }
         }
@@ -267,6 +339,13 @@ class OAuth2Context implements SnippetAcceptingContext
         $this->request = new Request('POST', $url, $headers, $bodyAsQuery);
 
         return $this->client->send($this->request);
+    }
+
+    protected function getGetResponseFromUrl(string $url): ResponseInterface
+    {
+        $this->request = new Request('GET', $url);
+
+        return $this->client->send($this->request, ['query' => $this->queryString]);
     }
 
     /**
